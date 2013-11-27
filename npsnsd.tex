@@ -1,0 +1,259 @@
+\documentclass[14pt]{article}
+\usepackage{graphicx}
+\usepackage{mathtools}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fontfamily{Helvetica}
+\begin{document}
+\lfoot[11pt]{Nikhil Kumar}
+\cfoot[11pt]{Page \thepage}
+\rfoot[11pt]{\today}
+\linespread{1.5}	
+\fancyhead{}
+\renewcommand{\headrulewidth}{0pt}
+\title{Installing and Running NPS and NSD}
+\author{Nikhil Kumar}
+
+\date{}
+\maketitle
+
+\clearpage
+
+\section{Introduction}
+\begin{description}
+\item[NPS]A software for detecting mono-nucleosome positions from the MNase digested Chip-Seq of modified histones.
+\item[NSD]Detect Nucleosome Depletion
+\end{description}
+ NPS and NSD are run in a Unix like enviorment this can be acieved through various methods. The best option would be to run the scripts in a linux or  Mac OS. An alternative would be to use a Bash-like terminal on windows such as Cygwin or to install linux as a Virtual Machine using Virtual Box. Some of these scripts particularly 1\_calc\_scc\_cor\_*.R take up a large amount of memory, so the computer chosen to run these scripts must have an ample amount of memory (6+gb). \\
+\section{Installation}
+These scripts require you to have Python2 and R installed as well as severeal python packages. Python3 will return a syntax error when used. If you are getting a syntax error, check you verion of python by doing:\\
+\\
+\fbox{\parbox{0.8\linewidth}{\textbf{\ttfamily{\$ python --version}}}}\\
+\\
+If this is the case then you would have to use python2 to execute the .py scripts otherwise using just python should work. 
+
+\subsection{Packages Needed}
+\begin{itemize}
+      \item Python Packages
+       \begin{itemize} 
+         \item pywavelets
+         \item setuptools
+         \item numpy
+        \end{itemize}
+\item samtools
+\item bedtools
+\end{itemize}
+To download and install python pakages you need to use the pip or the pip2 command. For example, for the pywavelets package you should run:\\
+
+\fbox{\parbox{0.8\linewidth}{\textbf{\ttfamily{\$ pip2 install pywavelets}}}}\\
+\\
+Here are the hyperlinks where you can download NPS, NSD and the rest of these packages
+\begin{description}
+\item[NPS] http://liulab.dfci.harvard.edu/NPS/
+\item[NSD] http://liulab.dfci.harvard.edu/BINOCh/
+\item[Samtools] http://sourceforge.net/projects/samtools/files/ 
+\item[Bedtools]  https://code.google.com/p/bedtools/
+\end{description}
+\subsection{Installing NSD}
+Unzip the package and run:\\ 
+
+\fbox{\parbox{0.8\linewidth}{\textbf{\ttfamily{\$ python2 setup.py build\\ \$ python2 setup.py install}}}}\\
+
+	
+\section{Converting BAM to Bed}
+\subsection{1\_extract\_MAPQ\_From\_BAM.sh}
+\subsubsection{Input and Output}
+\begin{tabular}{l |c }
+
+Input & Output \\
+\hline
+BAM File & *\_sorted\_MAPQ20.txt\\
+\end{tabular}\\
+\\
+\subsubsection{Description}
+Get MAPQ coumns using Samtools
+\\
+\subsubsection{Exectution}
+\fbox{\parbox{0.8\linewidth}{\textbf{\ttfamily{\$ vim 1\_extract\_MAPQ\_From\_BAM.sh \\ Edit the input and output \\
+\$ chmod +x 1\_extract\_MAPQ\_From\_BAM.sh\\ \$ ./1\_extract\_MAPQ\_From\_BAM.sh}}}}\\
+
+
+\subsection{2\_see\_the\_MAPQ\_quantiles\_and\_histograms.R}
+\subsubsection{Input and Output}
+\begin{tabular}{l |c }
+
+Input & Output \\
+\hline
+*\_sorted\_MAPQ20.txt & img\_hist\_*.png\\
+& MAP\_quantiles.txt\\
+\\
+\end{tabular}\\
+\\
+\subsubsection{Description}
+Process the input and creates a histogram and MAPQ\_quantiles of BAM\\
+\includegraphics[scale=.8]{MAPQquantiles}
+\\
+This bar graph is a sample png generated from the R script. It shows the distribution of the MAPQ scores in the file.
+\\
+\subsubsection{Execution}
+\fbox{\parbox{0.8\linewidth}{\textbf{\ttfamily{\$ vim 2\_see\_the\_MAPQ\_quantiles\_and\_histograms.R \\ Edit the input and output \\
+\$ chmod +x 2\_see\_the\_MAPQ\_quantiles\_and\_histograms.R\\ \$ R \\ \$ source("2\_see\_the\_MAPQ\_quantiles\_and\_histograms.R")}}}}\\
+
+\subsection{3\_leave\_reads\_with\_mapq20\_and\_count\_BAM.sh}
+\subsubsection{Input and Output}
+\begin{tabular}{l |c }
+
+Input & Output \\
+\hline
+BAM File & summary\_statistics\_of\_MAPQ20\\
+&*\_MAPQ20.BAM\\
+\end{tabular}\\
+\\
+\subsubsection{Description}
+Removes reads of MAPQ below the value of 20\\
+\\
+To edit MAPQ threshold you have to edit the script and find the line "samtools view -b -h -q 20". Then change 20 to the desired number.\\
+\subsubsection{Execution}
+\fbox{\parbox{0.8\linewidth}{\textbf{\ttfamily{\$ vim 3\_leave\_reads\_with\_mapq20\_and\_count\_BAM.sh \\ Edit the input and output \\
+\$ chmod +x 3\_leave\_reads\_with\_mapq20\_and\_count\_BAM.sh \\ \$ ./3\_leave\_reads\_with\_mapq20\_and\_count\_BAM.sh}}}}\\
+
+\subsection{bam2bed\_*.sh}
+\subsubsection{Input and Output}
+\begin{tabular}{l |c }
+
+Input & Output \\
+\hline
+*\_MAPQ20.BAM & *\_MAPQ20.bed\\
+\end{tabular}\\
+\\
+\subsubsection{Description}
+Convert from BAM to Bed using Bedtools\\
+\\
+\subsubsection{Exectution}
+\fbox{\parbox{0.8\linewidth}{\textbf{\ttfamily{\$ vim bam2bed\_*.sh \\ Edit the input and output \\
+\$ chmod +x bam2bed\_*.sh \\ \$ ./bam2bed\_*.sh}}}}\\
+
+
+\section{Running NPS}
+\subsection{1\_calc\_scc\_cor\_*.R}
+\subsubsection{Input and Output}
+\begin{tabular}{l |c }
+Input & Output \\
+\hline
+BED file & *\_scc.txt\\
+& *\_scc.png\\
+\end{tabular}\\
+\\
+\subsubsection{Description}
+Used to determine fragment length for subsequent input into NPS\\
+This script takes up a large amount of memomory and the bed file needs to be cut down in size depending on the amount of memory your computer has. To do this you must first figure out how many lines the bed files have using the \emph{wc} command and then split it using the \emph{split} command. Both of these commands require you to use the -l flag. Generally I have divided the files in half until the script was able to run the file. For example to split the file K27acColonWT\_MAPQ20\_NPS.bed ih half you have to run:\\
+\\
+
+\fbox{\parbox{0.8\linewidth}{\textbf{\ttfamily{\$ wc -l K27acColonWT\_MAPQ20\_NPS.bed \\ \$ split -l 123057 K27acColonWT\_MAPQ20\_NPS.bed}}}}\\
+\\
+The output of the split command will be 2 txt files names xaa.txt and xab.txt. you should use xaa.txt and convert it to a bed file by renaming the file extension.
+
+
+\includegraphics[scale=.7]{K27acColonDSSr2_scc} \\
+This graph shows the maximum correlation in this file.
+\\
+\subsubsection{Exectution}
+\fbox{\parbox{0.8\linewidth}{\textbf{\ttfamily{\$ vim 1\_calc\_scc\_cor\_*.R \\ Edit the input and output \\
+\$ chmod +x 1\_calc\_scc\_cor\_*.R \\ \$ R \\ \$ source("1\_calc\_scc\_cor\_*.R")}}}}\\
+
+
+\subsection{NPS.par}
+\subsubsection{Input and Output}
+\begin{tabular}{l |c }
+Input & Output \\
+\hline
+shift & *\_MAPQ20.txt\\
+\end{tabular}\\
+\\
+\subsubsection{Description}
+The NPS.par file must be edited with the proper shift\\
+
+Shift = $\frac{DNA fragment -  extension}{2}$
+\\
+\\
+Detects mono-nucleosome positions from the chip-seq of modified hostones\\
+The .txt file should be converted to a .bed file. This can be done simply by renaming the file extension.
+\\
+\subsubsection{Execution}
+\fbox{\parbox{0.8\linewidth}{\textbf{\ttfamily{\$ vim NPS.par \\ Edit the input, output, and shift \\
+\$ chmod +x NPS.par \\ \$ python2 SeqTag.py NPS.par}}}}\\
+
+\subsection{1\_tagtab\_*.sh}
+\subsubsection{Input and Output}
+\begin{tabular}{l |c }
+Input & Output \\
+\hline
+NPS file& XLS file\\
+Chip-Seq Bed file 1\\ 
+Chip-Seq Bed file 2\\
+\end{tabular}\\
+\\
+\subsubsection{Description}
+This script gets the NSD regions in a XLS file which should be converted to a txt file. This can be done on Micorsoft Excel.
+\\
+\subsubsection{Execution}
+\fbox{\parbox{0.8\linewidth}{\textbf{\ttfamily{\$ vim 1\_tagtab\_*.sh \\ Edit the input and output \\
+\$ chmod +x 1\_tagtab\_*.sh\\ \$ ./1\_tagtab\_*.sh}}}}\\
+
+\section{Running NSD}
+\subsection{2\_select\_2kbaway\_NSD\_sites.R}
+\subsubsection{Input and Output}
+\begin{tabular}{l |c }
+Input & Output \\
+\hline
+NPS txt file & *\_2kbaway.txt\\
+\end{tabular}\\
+\subsubsection{Description}
+Select NSD sites that are at least 2kb away from promoters of genes in order to exclusively include the enhancer sites\\
+\\
+\subsubsection{Execution}
+\fbox{\parbox{0.8\linewidth}{\textbf{\ttfamily{\$ vim 2\_select\_2kbaway\_NSD\_sites.R \\ Edit the input and output \\
+\$ chmod +x 2\_select\_2kbaway\_NSD\_sites.R \\ \$ R \\ \$ source("2\_select\_2kbaway\_NSD\_sites.R")}}}}\\
+
+\subsection{3\_calc\_NSD.sh}
+\subsubsection{Input and output}
+\begin{tabular}{l |c }
+Input & Output \\
+\hline
+*\_2kbaway.txt & *\_score.txt\\
+Chip-Seq Bed file 1\\ 
+Chip-Seq Bed file 2\\
+
+\end{tabular}\\
+\subsubsection{Description}
+Computes the NSD scores for comparison of activity\\
+\subsubsection{Execution}
+\fbox{\parbox{0.8\linewidth}{\textbf{\ttfamily{\$ vim 3\_calc\_NSD.sh \\ Edit the input and output \\
+\$ chmod +x 3\_calc\_NSD.sh \\ \$ ./3\_calc\_NSD.sh}}}}\\
+
+
+
+\subsection{4\_stats\_of\_NSD.R}
+\subsubsection{Input and output}
+\begin{tabular}{l |c }
+Input & Output \\
+\hline
+*\_score.txt&*\_score.txt\_(+or-)SD1.txt \\
+&*\_score.txt\_(+or-)SD2.txt\\
+&*\_score.txt\_(bot or top)1000.txt\\
+&*\_score.txt\_(bot or top)2000.txt\\
+&*\_score.txt\_(bot or top)3000.txt\\
+&*\_score.txt\_(bot or top)5000.txt\\
+
+
+\end{tabular}\\
+\subsubsection{Description}
+\includegraphics[scale=0.8]{NSD_score}\\
+
+This shows the distribution of the NSD scores
+\subsubsection{Execution}
+\fbox{\parbox{0.8\linewidth}{\textbf{\ttfamily{\$ vim 4\_stats\_of\_NSD.R \\ Edit the input and output \\
+\$ chmod +x 4\_stats\_of\_NSD.R \\ \$ R \\ \$ source("4\_stats\_of\_NSD.R")}}}}\\
+
+
+\end{document}
